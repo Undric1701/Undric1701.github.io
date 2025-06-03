@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script type="text/javascript">
+        let gl;
+        let startTime, pausetime = 0.0;
+        let FrameW, FrameH, PosX = 500.0, PosY = 500.0, MPosX = 300, MPosY = 300, Zoom = 1;
+        let tmpx = MPosX, tmpy = MPosY;
+        let IsClick = false, IsPause = false, Frac = false;
+        let Iterations = 256;
+        let BackgroundC, FractalC;
+
+        function initGL(canvas) {
+            gl = canvas.getContext("webgl2");
+            gl.viewportWidth = canvas.width;
+            gl.viewportHeight = canvas.height;
+            FrameW = canvas.width;
+            FrameH = canvas.height;
+        }
+
+        const shaderFs = `#version 300 es
+        precision highp float;
+
+        layout (location = 0) out vec4 o_color;
+                             
+        uniform float frac;
+        uniform float u_time;
+        uniform float FrameW;
+        uniform float FrameH;
+        uniform float POSX; // 300.0
+        uniform float POSY; // 300.0
+        uniform float MPOSX; // 300.0
+        uniform float MPOSY; // 300.0
+        uniform float Iterations; // 256
+        uniform float Zoom; // 1.0
+        uniform vec3 FractalColor;
+        uniform vec3 BackgroundColor;
+
+
+        vec2 CmplSet( float Re, float Im )
+        {
+            vec2 Z = vec2(Re, Im);
+
+            return Z;
+        }
+
+        vec2 CmplAdd( vec2 Z1, vec2 Z2 ) {
+            vec2 Z = vec2(Z1.x + Z2.x, Z1.y + Z2.y);
+
+            return Z;
+        }
+
+        vec2 CmplMult( vec2 Z1, vec2 Z2 ) {
+            vec2 Z = vec2(Z1.x * Z2.x - Z1.y * Z2.y, Z1.x * Z2.y + Z1.y * Z2.x);
+            return Z;
+        }
+
+        float CmplNorm( vec2 Z )
+        {
+            return sqrt(Z.x * Z.x + Z.y * Z.y);
+        }
+
+        float CmplNorm2( vec2 Z )
+        {
+            return Z.x * Z.x + Z.y * Z.y;
+        }
+
+        vec2 CmplSubCmpl( vec2 Z1, vec2 Z2 )
+        {
+            vec2 Z = vec2(Z1.x - Z2.x, Z1.y - Z2.y);
+
+            return Z;
+        }
+
+        vec2 CmplMulNum( vec2 Z, float N )
+        {
+            vec2 A = vec2(Z.x * N, Z.y * N);
+
+            return A;
+        }
+
+        vec2 CmplConj( vec2 Z )
+        {
+            vec2 A = vec2(Z.x, -Z.y);
+
+            return A;
+        }
+
+        vec2 DivCmpl( vec2 Z1, vec2 Z2 )
+        {
+        vec2 A;
+
+            A = CmplMult(Z1, CmplConj(Z2));
+            A = CmplMulNum(A, float(1.0 / CmplNorm2(Z2)));
+            return A;
+        }
+
+        int MandlFrac( vec2 Z , float T )
+        {
+            int n = 0;
+            vec2 Z0 = vec2(Z.x, Z.y + T);
+            
+            while ( n < int(Iterations) && CmplNorm2(Z) < 4.0)
+                Z = CmplAdd(CmplMult(Z, Z), Z0), n++;
+            return n;
+        }
+        int JuliaFrac( vec2 Z, float T )
+        {
+            int n = 0;
+            vec2 C = CmplSet(0.30 + 0.08 * sin(T + 3.0), 0.47 + 0.08 * sin(1.02 * T));
+
+            while (n < 255 && CmplNorm2(Z) < 4.0)
+            {
+                Z = CmplAdd(CmplMult(Z, Z), C);
+                n++;
+            }
+            return n;
+        }
+
+        void main() {
+            vec2 Z;
+            float NewPosX = MPOSX - (MPOSX - POSX) / Zoom,
+                  NewPosY = MPOSY - (MPOSY - POSY) / Zoom,              
+                  x = 2.0 * (POSX + FrameW / 2.0 / Zoom * (2.0 * gl_FragCoord.x / FrameW - 1.0)) / FrameW - 1.0,
+                  y = 2.0 * (POSY + FrameH / 2.0 / Zoom * (2.0 * gl_FragCoord.y / FrameH - 1.0)) / FrameH - 1.0,
+                  n;
+                             
+            float t = sin(2.0 * 3.1415 * u_time) * 2.0;
+            Z = CmplSet(x, y);
+            if (frac == 1.0)
+                n = float(MandlFrac(Z, t));
+            else
+                n = float(JuliaFrac(Z, t));
+            
+            o_color = vec4(0, n / Iterations, n / Iterations, 1);
+            o_color = vec4(mix(BackgroundColor, FractalColor, n / Iterations * 3.0), 1);
+        }`;
+
+        const shaderVs = `#version 300 es
+        precision highp float;
+
+        layout (location = 0) in vec2 a_pos;
+
+        void main() {
+            gl_Position = vec4(a_pos, 0, 1);
+        }`;
+
+        function getShader(shaderStr, type) {
+            const shader = gl.createShader(type);
+
+            gl.shaderSource(shader, shaderStr);
+            gl.compileShader(shader);
+
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                alert(gl.getShaderInfoLog(shader));
+            }
+
+            return shader;
+        }
+
+        let u_time_location,
+            u_frame_w_location,
+            u_frame_h_location,
+            u_posx_location,
+            u_posy_location,
+            u_frac_location,
+            u_iterations_location,
+            u_zoom_location,
+            u_background_color,
+            u_fractal_color;
+
+        function GetColor(Color) {
+            let r = parseInt(Color.substring(1, 3), 16) / 255.0;
+            let g = parseInt(Color.substring(3, 5), 16) / 255.0;
+            let b = parseInt(Color.substring(5, 7), 16) / 255.0;
+            return [r, g, b];
+        }
+
+        function initShaders() {
+            const vs = getShader(shaderFs, gl.FRAGMENT_SHADER);
+            const fs = getShader(shaderVs, gl.VERTEX_SHADER);
+
+            const program = gl.createProgram();
+            gl.attachShader(program, vs);
+            gl.attachShader(program, fs);
+            gl.linkProgram(program);
+
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                alert("Program linkage error");
+            }
+
+            gl.useProgram(program);
+
+            u_time_location = gl.getUniformLocation(program, "u_time");
+            u_frame_w_location = gl.getUniformLocation(program, "FrameW");
+            u_frame_h_location = gl.getUniformLocation(program, "FrameH");
+            u_posx_location = gl.getUniformLocation(program, "POSX");
+            u_posy_location = gl.getUniformLocation(program, "POSY");
+            u_frac_location = gl.getUniformLocation(program, "frac");
+            u_iterations_location = gl.getUniformLocation(program, "Iterations");
+            u_zoom_location = gl.getUniformLocation(program, "Zoom");
+            u_background_color = gl.getUniformLocation(program, "BackgroundColor");
+            u_fractal_color = gl.getUniformLocation(program, "FractalColor");
+        }
+
+        let vertexBuffer;
+        function initBuffer() {
+            vertexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            vertices = [3, 1, -1, 1, -1, -3];
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array(vertices),
+                gl.STATIC_DRAW
+            );
+        }
+
+        function drawScene() {
+            gl.clearColor(1, 1, 1, 1);
+            gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            gl.enableVertexAttribArray(0);
+            gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+            if (IsPause)
+                timeFromStart = pausetime;
+            else
+                timeFromStart = (new Date()).getMilliseconds() - startTime - pausetime;
+
+            gl.uniform1f(u_time_location, timeFromStart / 1000.0);
+            gl.uniform1f(u_frame_w_location, FrameW);
+            gl.uniform1f(u_frame_h_location, FrameH);
+            gl.uniform1f(u_posx_location, PosX);
+            gl.uniform1f(u_posy_location, PosY);
+            gl.uniform1f(u_frac_location, Frac);
+            gl.uniform1f(u_iterations_location, Iterations);
+            gl.uniform1f(u_zoom_location, Zoom);
+            gl.uniform3fv(u_background_color, GetColor(BackgroundC));
+            gl.uniform3fv(u_fractal_color, GetColor(FractalC));
+
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            window.requestAnimationFrame(drawScene);
+        }
+
+        function onStart() {
+            console.log("ABC");
+            let mult = 0.00047;
+
+            let canvas = document.getElementById("webgl-canvas");
+
+            canvas.onmousemove = (ev) => {
+                tmpx = ev.clientX, tmpy = ev.clientY;
+                if (IsClick) {
+                    PosX -= ev.movementX / Zoom, PosY += ev.movementY / Zoom;
+                    /*MPosX = ev.ClientX / Zoom, MPosY = ev.ClientY;*/
+                }
+            };
+            canvas.onwheel = (ev) => {
+                MPosX = tmpx;
+                MPosY = tmpy;
+                PosX += (MPosX * 2 - FrameW) / 2 / Zoom * (1 - 1 / (1 + mult * ev.deltaY));
+                PosY -= (MPosY * 2 - FrameH) / 2 / Zoom * (1 - 1 / (1 + mult * ev.deltaY));
+                Zoom *= 1 + mult * ev.deltaY;
+                console.log(PosX, PosY);
+            };
+            canvas.onmousedown = (ev) => { IsClick = true };
+            canvas.onmouseup = (ev) => { IsClick = false };
+            document.getElementById("Iterations_Input").onchange = function () {
+                Iterations = this.value;
+            };
+            document.getElementById("Pause").onclick = function () {
+                IsPause = !IsPause;
+                if (IsPause)
+                    pausetime = (new Date()).getMilliseconds();
+            };
+
+            document.getElementById("Fractal").onclick = function () {
+                Frac = !Frac;
+            };
+            BackgroundC = document.getElementById("background-color").value;
+            document.getElementById("background-color").onchange = function () {
+                BackgroundC = this.value;
+            };
+            FractalC = document.getElementById("fractal-color").value;
+            document.getElementById("fractal-color").onchange = function () {
+                FractalC = this.value;
+            };
+
+            initGL(canvas);
+            initShaders();
+            initBuffer();
+
+            startTime = (new Date()).getMilliseconds();
+            drawScene();
+        }
+    </script>
+</head>
+
+<body onload="onStart();">
+    <div>
+        <canvas id="webgl-canvas" style="border: none" width="1000" height="1000"></canvas>
+        <span>
+            <p1>Iterations</p1>
+            <input type="range" min="1" max="1024" step="1" value="256" id="Iterations_Input"></input>
+        </span>
+    </div>
+    <div>
+        <span>
+            <p2>Pause</p2>
+            <input type="button" style="width: 200px; height: 100px;" id="Pause"></input>
+        </span>
+    </div>
+    <div>
+        <span>
+            <p3>Change fractal</p3>
+            <input type="button" style="width: 200px; height: 100px;" id="Fractal"></input>
+        </span>
+    </div>
+    <div>
+        <span>
+            <p4>Background color</p5>
+
+                <input type="color" style="width: 200px; height: 100px;" id="background-color" value="#212121"></input>
+        </span>
+        <span>
+            <p5>Fractal color</p5>
+            <input type="color" style="width: 200px; height: 100px;" id="fractal-color" value="#7311D4"></input>
+        </span>
+    </div>
+</body>
+
+</html>
