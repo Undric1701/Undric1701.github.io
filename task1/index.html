@@ -248,9 +248,9 @@
             let canvas = document.getElementById("webgl-canvas");
 
             canvas.onmousemove = (ev) => {
-                tmpx = ev.clientX, tmpy = ev.clientY;
+                tmpx = ev.x, tmpy = ev.y;
                 if (IsClick) {
-                    PosX -= ev.movementX / Zoom, PosY += ev.movementY / Zoom;
+                    PosX -= ev.movementX * 1.5 / Zoom, PosY += ev.movementY * 1.5 / Zoom;
                     /*MPosX = ev.ClientX / Zoom, MPosY = ev.ClientY;*/
                 }
             };
