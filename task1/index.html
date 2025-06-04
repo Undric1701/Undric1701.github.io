@@ -7,7 +7,7 @@
         let startTime, pausetime = 0.0;
         let FrameW, FrameH, PosX = 500.0, PosY = 500.0, MPosX = 300, MPosY = 300, Zoom = 1;
         let tmpx = MPosX, tmpy = MPosY;
-        let IsClick = false, IsPause = false, Frac = false;
+        let IsClick = false, IsPause = true, Frac = false;
         let Iterations = 256;
         let BackgroundC, FractalC;
 
@@ -120,9 +120,7 @@
 
         void main() {
             vec2 Z;
-            float NewPosX = MPOSX - (MPOSX - POSX) / Zoom,
-                  NewPosY = MPOSY - (MPOSY - POSY) / Zoom,              
-                  x = 2.0 * (POSX + FrameW / 2.0 / Zoom * (2.0 * gl_FragCoord.x / FrameW - 1.0)) / FrameW - 1.0,
+            float x = 2.0 * (POSX + FrameW / 2.0 / Zoom * (2.0 * gl_FragCoord.x / FrameW - 1.0)) / FrameW - 1.0,
                   y = 2.0 * (POSY + FrameH / 2.0 / Zoom * (2.0 * gl_FragCoord.y / FrameH - 1.0)) / FrameH - 1.0,
                   n;
                              
@@ -133,7 +131,6 @@
             else
                 n = float(JuliaFrac(Z, t));
             
-            o_color = vec4(0, n / Iterations, n / Iterations, 1);
             o_color = vec4(mix(BackgroundColor, FractalColor, n / Iterations * 3.0), 1);
         }`;
 
