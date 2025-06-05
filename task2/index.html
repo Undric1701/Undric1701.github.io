@@ -1,4 +1,4 @@
-<!-- Treatykov Andrey (AT7), 10-7, 04.06.2025, Platon's figures task -->
+<!-- Treatykov Andrey (AT7), 10-7, 05.06.2025, Platon's figures task -->
 
 <!DOCTYPE html>
 <html>
@@ -41,7 +41,8 @@
         layout (location = 0) in vec3 a_pos;
 
         void main() {
-            gl_Position = /*MatrVP * */vec4(a_pos, 1);
+            gl_Position = MatrVP * vec4(a_pos, 1);
+            //gl_Position = vec4(a_pos, 1);
         }`;
 
         function getShader(shaderStr, type) {
@@ -94,13 +95,6 @@
             u_time_location = gl.getUniformLocation(program, "u_time");
             u_frame_w_location = gl.getUniformLocation(program, "FrameW");
             u_frame_h_location = gl.getUniformLocation(program, "FrameH");
-            u_posx_location = gl.getUniformLocation(program, "POSX");
-            u_posy_location = gl.getUniformLocation(program, "POSY");
-            u_frac_location = gl.getUniformLocation(program, "frac");
-            u_iterations_location = gl.getUniformLocation(program, "Iterations");
-            u_zoom_location = gl.getUniformLocation(program, "Zoom");
-            u_background_color = gl.getUniformLocation(program, "BackgroundColor");
-            u_fractal_color = gl.getUniformLocation(program, "FractalColor");
             u_matrVP_location = gl.getUniformLocation(program, "MatrVP");
         }
 
@@ -124,30 +118,31 @@
             else
                 timeFromStart = (new Date()).getMilliseconds() - startTime - pausetime;
 
-            gl.clearColor(0, 0, 1, 1);
+            gl.clearColor(0.9, 0.92, 0.9, 1);
             gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             gl.enableVertexAttribArray(0);
             gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
 
-            //let loc = new mth.VEC3(30 * Math.sin(timeFromStart / 500 * mth.PI), 30, 30 * Math.cos(timeFromStart / 500 * mth.PI));
-            let loc = new mth.VEC3(30, 30, 30);
+            let loc = new mth.VEC3(20, 10, 20 + 0 * 30 * Math.cos(timeFromStart / 500 * mth.PI));
+            //let loc = new mth.VEC3(30, 30, 30);
             let at = new mth.VEC3(0, 0, 0);
             let up = new mth.VEC3(0, 1, 0);
             let MatrV = mth.MatrView(loc, at, up);
             let MatrP = mth.MatrFrustum(-ProjSize / 2, ProjSize / 2, -ProjSize / 2, ProjSize / 2, 0.1, 100);
             let MatrVP = mth.MatrMulMatr(MatrV, MatrP);
-            timeFromStart = 0;
-            let p1 = new mth.VEC3(5 + 10 * Math.sin(timeFromStart / 500 * mth.PI), 10, 5 + 10 * Math.cos(timeFromStart / 500 * mth.PI));
-            let p2 = new mth.VEC3(10 + 10 * Math.sin(timeFromStart / 500 * mth.PI), 0, 10 + 10 * Math.cos(timeFromStart / 500 * mth.PI));
-            let p3 = new mth.VEC3(2 + 10 * Math.sin(timeFromStart / 500 * mth.PI), 10, -10 + 10 * Math.cos(timeFromStart / 500 * mth.PI));
-            p1 = mth.Vec3MulMatr(p1, MatrVP);
-            p2 = mth.Vec3MulMatr(p2, MatrVP);
-            p3 = mth.Vec3MulMatr(p3, MatrVP);
-            //p1 = mth.Vec3AddVec3(mth.Vec3Set(0.5, 0.5, 0.5), mth.Vec3MulNum(p1, 0.5));
-            //p2 = mth.Vec3AddVec3(mth.Vec3Set(0.5, 0.5, 0.5), mth.Vec3MulNum(p2, 0.5));
-            //p3 = mth.Vec3AddVec3(mth.Vec3Set(0.5, 0.5, 0.5), mth.Vec3MulNum(p3, 0.5));
+            let p1 = new mth.VEC3(10/* + 3 * Math.sin(timeFromStart / 500 * mth.PI)*/, 10, 5 + 3 * Math.cos(timeFromStart / 500 * mth.PI));
+            let p2 = new mth.VEC3(10/* + 3 * Math.sin(timeFromStart / 500 * mth.PI)*/, 0, 10 + 3 * Math.cos(timeFromStart / 500 * mth.PI));
+            let p3 = new mth.VEC3(10/* + 3 * Math.sin(timeFromStart / 500 * mth.PI)*/, 10, -10 + 3 * Math.cos(timeFromStart / 500 * mth.PI));
+            p1 = mth.Vec3Set(10 + 5 * Math.sin(timeFromStart / 500 * mth.PI), 5 * Math.cos(timeFromStart / 500 * mth.PI), 10);
+            p2 = mth.Vec3Set(-10, 0, 10);
+            p3 = mth.Vec3Set(-10, 0, -10);
+
+            //p1 = mth.Vec3MulMatr(p1, MatrVP);
+            //p2 = mth.Vec3MulMatr(p2, MatrVP);
+            //p3 = mth.Vec3MulMatr(p3, MatrVP);
+
             let points = [p1.X, p1.Y, p1.Z, p2.X, p2.Y, p2.Z, p3.X, p2.Y, p3.Z];
             points = new Float32Array(points);
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -165,7 +160,7 @@
             gl.uniform1f(u_time_location, timeFromStart / 1000.0);
             gl.uniform1f(u_frame_w_location, FrameW);
             gl.uniform1f(u_frame_h_location, FrameH);
-            gl.uniformMatrix4fv(u_matrVP_location, true, new Float32Array(MatrVP.A[0].concat(MatrVP.A[1].concat(MatrVP.A[2].concat(MatrVP.A[3]))), 0, 16));
+            gl.uniformMatrix4fv(u_matrVP_location, false, new Float32Array(MatrVP.A[0].concat(MatrVP.A[1].concat(MatrVP.A[2].concat(MatrVP.A[3]))), 0, 16));
 
             gl.drawArrays(gl.TRIANGLES, 0, 3);
             window.requestAnimationFrame(drawScene);
