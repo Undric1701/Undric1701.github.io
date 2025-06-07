@@ -9,13 +9,13 @@ export let u_time_location,
     u_matrW_location,
     u_camDir_location;
 
-const ft1 = fetch("/shaders/vert.glsl")
+const ft1 = fetch("./shaders/vert.glsl")
     .then((res) => res.text())
     .then((data) => {
         vs = data;
     });
 
-const ft2 = fetch("/shaders/frag.glsl")
+const ft2 = fetch("./shaders/frag.glsl")
     .then((res) => res.text())
     .then((data) => {
         fs = data;
@@ -43,9 +43,7 @@ function getUniformLocations(gl) {
 }
 
 export async function initShaders(gl) {
-    // Построение "промиза" - сущности ожидания завершения указанных асинхронных запросов
     const allData = await Promise.all([ft1, ft2]);
-    // Выполняем то, что необходимо после получения файлов
     vs = loadShader(vs, gl.VERTEX_SHADER, gl);
     fs = loadShader(fs, gl.FRAGMENT_SHADER, gl);
     program = gl.createProgram();
