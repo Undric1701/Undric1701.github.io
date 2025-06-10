@@ -15,7 +15,8 @@ out vec3 drawWPos;
 void main() {
     gl_Position = MatrVP * MatrW * vec4(inPosition, 1);
     drawColor = inColor;
-    drawNormal = inNormal;
+    drawNormal = mat3(inverse(transpose(MatrW))) * inNormal;
     drawWPos = (MatrW * vec4(inPosition, 1)).xyz; 
+    drawColor = vec4(normalize(drawWPos), 1);
     //gl_Position = vec4(a_pos, 1);
 }

@@ -42,6 +42,16 @@ export function MatrScale(S) {
         0, 0, S.z, 0,
         0, 0, 0, 1);
 }
+
+export function MatrRotate(AngleInDegrees, R) {
+    let s = Math.sin(AngleInDegrees / 180 * PI), c = Math.cos(AngleInDegrees / 180 * PI),
+        x = R.x, y = R.y, z = R.z;
+
+    return new Matr(x * x * (1 - c) + c, x * y * (1 - c) + z * s, x * z * (1 - c) - y * s, 0,
+        x * y * (1 - c) - z * s, y * y * (1 - c) + c, y * z * (1 - c) + x * s, 0,
+        x * z * (1 - c) + y * s, y * z * (1 - c) - x * s, z * z * (1 - c) + c, 0,
+        0, 0, 0, 1);
+}
 export function MatrTranspose(M) {
     return new Matr(M.A[0][0], M.A[1][0], M.A[2][0], M.A[3][0],
         M.A[0][1], M.A[1][1], M.A[2][1], M.A[3][1],
@@ -254,6 +264,22 @@ export function MatrFrustum(L, R, B, T, N, F) {
         0, 0, - 2 * N * F / (F - N), 0);
     return m;
 }
+
+export function CamSetProj(W, H, ProjSize, ProjDist, ProjFarClip) {
+    let Wp = ProjSize, Hp = ProjSize;
+    /* Correct aspect ratio */
+    if (W >= H)
+        Wp *= W / H;
+    else
+        Hp *= H / W;
+
+    return MatrFrustum(-Wp / 2, Wp / 2, -Hp / 2, Hp / 2, ProjDist, ProjFarClip);
+} /* End of 'CamSetProj' function */
+
+
 export function ArrFromVec3(V) {
     return [V.x, V.y, V.z]
+}
+export function Vec4Set(X, Y, Z, W) {
+    return new Vec4(X, Y, Z, W);
 }

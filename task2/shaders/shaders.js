@@ -7,7 +7,8 @@ export let u_time_location,
     u_frame_h_location,
     u_matrVP_location,
     u_matrW_location,
-    u_camDir_location;
+    u_camDir_location,
+    u_camLoc_location;
 
 const ft1 = fetch("./shaders/vert.glsl")
     .then((res) => res.text())
@@ -40,6 +41,7 @@ function getUniformLocations(gl) {
     u_matrVP_location = gl.getUniformLocation(program, "MatrVP");
     u_matrW_location = gl.getUniformLocation(program, "MatrW");
     u_camDir_location = gl.getUniformLocation(program, "CamDir");
+    u_camLoc_location = gl.getUniformLocation(program, "CamLoc");
 }
 
 export async function initShaders(gl) {

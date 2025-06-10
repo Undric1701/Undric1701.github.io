@@ -12,11 +12,13 @@ uniform float u_time;
 uniform float FrameW;
 uniform float FrameH;   
 uniform vec3 CamDir;   
+uniform vec3 CamLoc;   
 
 
 
-void main() {      
+void main() {         
+    //vec3 V = normalize(drawWPos - CamLoc);
+    //vec3 N = faceforward(drawNormal, V, drawNormal);
     float nl = max(0.1, dot(drawNormal, CamDir));
-    o_color = vec4(drawColor.rgb * nl, drawColor.a);
-    //o_color = drawColor;    
+    o_color = vec4(drawColor.rgb * nl, drawColor.a);    
 }
