@@ -2,7 +2,7 @@
 
 import * as mth from "./mth.js"
 import * as rnd from "./rnd.js"
-import * as shd from "./shaders/shaders.js"
+import * as shd from "./dist/shaders/shaders.js"
 
 export class Vertex {
     constructor(pos, color, normal) {
@@ -92,7 +92,7 @@ export function setDefaultTetrahedronGeom() {
         0, 1, 2,
         0, 2, 3,
         0, 1, 3,
-        2, 2, 3
+        1, 2, 3
     ];
     let normals = vertices;
     return [vertices, normals, Indices];
@@ -210,11 +210,11 @@ export function setDefaultDodecahedronGeom() {
             Indices[i * 9 + 1] = (i + 1) % 10;
             Indices[i * 9 + 2] = (i + 2) % 10;
             Indices[i * 9 + 3] = i;
-            Indices[i * 9 + 4] = 10 + i / 2;
-            Indices[i * 9 + 5] = 10 + (i / 2 + 1) % 5;
+            Indices[i * 9 + 4] = 10 + (i - 1) / 2;
+            Indices[i * 9 + 5] = 10 + ((i - 1) / 2 + 1) % 5;
             Indices[i * 9 + 6] = i;
             Indices[i * 9 + 7] = (i + 2) % 10;
-            Indices[i * 9 + 8] = 10 + (i / 2 + 1) % 5;
+            Indices[i * 9 + 8] = 10 + ((i - 1) / 2 + 1) % 5;
         }
     }
     Indices[90] = 10;
@@ -255,15 +255,33 @@ export function drawGloabalQueue(gl) {
             gl.STATIC_DRAW
         );
 
+        /*
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rnd.indexBuffer);
         gl.bufferData(
             gl.ELEMENT_ARRAY_BUFFER,
             new Uint32Array(globalDrawQueue[i][2]),
             gl.STATIC_DRAW
-        );
+        ); 
+        */
         gl.uniformMatrix4fv(shd.u_matrW_location, false, new Float32Array(globalDrawQueue[i][0].A[0].concat(globalDrawQueue[i][0].A[1].concat(globalDrawQueue[i][0].A[2].concat(globalDrawQueue[i][0].A[3]))), 0, 16));
-        gl.drawElements(gl.TRIANGLES, globalDrawQueue[i][2].length, gl.UNSIGNED_INT, 0);
+        //gl.drawElements(gl.TRIANGLES, globalDrawQueue[i][2].length, gl.UNSIGNED_INT, 0);
+        gl.drawArrays(gl.TRIANGLES, 0, globalDrawQueue[i][1].length / 10);
     }
+}
+
+export function getNormalGeom(vert, ind) {
+    let vertices = [];
+    let normals = [];
+
+    for (let i = 0; i < ind.length; i += 3) {
+        vertices[i] = vert[ind[i]];
+        vertices[i + 1] = vert[ind[i + 1]];
+        vertices[i + 2] = vert[ind[i + 2]];
+        normals[i] = mth.Vec3Normalize(mth.Vec3CrossVec3(mth.Vec3SubVec3(vertices[i + 1], vertices[i]), mth.Vec3SubVec3(vertices[i + 2], vertices[i])))
+        normals[i + 1] = normals[i];
+        normals[i + 2] = normals[i];
+    }
+    return [vertices, normals];
 }
 
 export function addToDrawQueue(matrW, vertexData, indices) {

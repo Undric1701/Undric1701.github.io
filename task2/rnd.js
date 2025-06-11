@@ -1,6 +1,6 @@
 /* Tretyakov Andrey (AT7), 10-7, 06.06.2025, render module */
 import * as mth from "./mth.js"
-import * as shd from "./shaders/shaders.js"
+import * as shd from "./dist/shaders/shaders.js"
 import * as main from "./main.js"
 import * as plat from "./plat.js"
 

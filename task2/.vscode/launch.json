@@ -5,8 +5,9 @@
             "type": "chrome",
             "request": "launch",
             "name": "AT7 Platon's figures",
-            "url": "http://localhost:8080",
+            "url": "http://localhost:8080/dist/index.html",
             "webRoot": "${workspaceFolder}",
+            "sourceMaps": true,
             "disableNetworkCache": true
         }
     ]
