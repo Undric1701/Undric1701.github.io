@@ -5,3 +5,5 @@ For working examples, visit:
 [Mandelbrot](https://undric1701.github.io/task1/)
 
 [Platon bodies](https://undric1701.github.io/task2/dist/index.html)
+
+[Chat](https://undric1701.github.io/chat/index.html)
