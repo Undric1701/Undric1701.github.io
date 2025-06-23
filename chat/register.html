@@ -1,0 +1,63 @@
+<!-- Treatykov Andrey (AT7), 10-7, 11.06.2025, Chat task -->
+
+<!DOCTYPE html>
+<html>
+
+<head>  
+    <title>AT7 chat.</title>
+    <link rel="icon" type="image/x-icon" href="./logo.ico"></link>
+    <style>
+    h1, p1, p2 {
+        text-align:center;
+        color:rgb(0, 0, 0);
+    }
+    </style>
+    <!-- <script type="text/javascript" src="./node_modules/socket.io-client/dist/socket.io.js"></script> -->
+     <script src="/socket.io/socket.io.js"></script>
+    <script type="module">
+        import {registerNewUser, openWebsocketCommunication} from "./client.js"                       
+
+        let usernameInput, passwordInput;
+        function main() {  
+            document.getElementById("register").onclick = function () {   
+                usernameInput = document.getElementById("Username").value;
+                passwordInput = document.getElementById("New-Password").value;
+                registerNewUser(usernameInput, passwordInput);
+            }                    
+            openWebsocketCommunication();                                         
+        }
+        window.addEventListener("load", () => { main() });
+
+    </script>
+</head>
+
+<body style="
+        background-image: url('./angrybird.jpg');
+        background-repeat: no-repeat;
+        background-size: cover;">
+    <div>
+    <span> 
+        <p1 style="position: absolute; top: 130px; left: 870px; font-size: 30px">Username</p1>
+        <input type="text" id="Username" style="position: absolute; top: 170px; left: 730px; width: 400px; height: 30px; font-size: 30px;"></input>
+    </span>           
+    <span>               
+        <p2 style="position: absolute; top: 210px; left: 870px; font-size: 30px">Password</p2>
+        <input type="text" id="New-Password" style="position: absolute; top: 250px; left: 730px; width: 400px; height: 30px; font-size: 30px;"></input>
+    </span>
+    <button id="register"
+        style=
+        "width: 470px;
+        height: 100px;
+        background-color:rgb(128, 179, 130);
+        font-size: 30px;
+        position: absolute;
+        top: 300px;
+        left: 700px;">
+        <strong>Register</strong>
+    </button>
+    <p3 style="position: absolute; top: 450px; left: 730px; font-size: 30px" id="Dynamic-Text"></p3>
+    </div>              
+    <p><a href = "/">back...</a></p>
+</body>
+       
+</html>

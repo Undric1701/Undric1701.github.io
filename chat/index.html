@@ -1,0 +1,52 @@
+<!-- Treatykov Andrey (AT7), 10-7, 11.06.2025, Chat task -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AT7 chat.</title>
+    <link rel="icon" type="image/x-icon" href="./logo.ico"></link>
+    <style>
+    h1, p1, p2, p3 {
+        text-align:center;
+        color:rgb(242, 228, 255);
+        text-shadow: 5px;
+        text-decoration: wavy;
+        background-color: rgba(108, 128, 139, 0.568);
+    }
+    </style>        
+    <script src="/socket.io/socket.io.js"></script>                                                            
+    <script type="module">
+        import * as client from "./client.js" 
+        window.addEventListener("load", () => { client.openWebsocketCommunication()});
+        //document.addEventListener("load", () => { client.openWebsocketCommunication()});
+    </script>
+</head>
+
+<body
+    style="
+        background-image: url('./angrybird.jpg');
+        background-repeat: no-repeat;
+        background-size: cover;">
+    <div>
+        <h1 style="font-size: 100px;"><strong>AT7 chat</strong></h1>             
+        <p1><a href = "./login.html"
+                style="position: absolute;
+                top: 250px; left: 700px;
+                font-size: 100px;                
+                text-shadow: 5px; box-shadow: 2px;
+                background-color: rgba(108, 128, 139, 0.568);">
+                Login
+            </a>
+        </p1>
+        <p2><a href = "./register.html"
+                style="position: absolute;
+                top: 400px; left: 700px;
+                font-size: 100px;
+                text-shadow: 5px; box-shadow: 2px;
+                background-color:rgba(108, 128, 139, 0.568);">
+                Register new user
+            </a>
+        </p2>
+    </div> 
+</body>       
+</html>
